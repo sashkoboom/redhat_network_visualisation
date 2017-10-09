@@ -1,0 +1,35 @@
+table{
+    border: black;
+}
+tr:nth-child(even) {  background: #CCC}
+tr:nth-child(odd) {background: #FFF}
+
+.box{
+
+    background-color: aquamarine;
+    padding: 2em;
+    border-color: black;
+
+}
+
+.boxie{
+    background-color: cornsilk;
+    padding: 1em;
+    margin: 0.5em;
+    border: 2px solid red;
+    width: 4em;
+}
+
+
+
+rect{
+
+    transition-duration: 1s;
+    transition-timing-function: linear;
+
+}
+
+rect:hover{
+    fill : aquamarine;
+}
+
