@@ -3,52 +3,45 @@
  */
 var NetworkModel = function() {
     this.interfaces = [];
-    this.levels = [];
-    this.branches = [];
     this.links = [];
     this.namespaces = [];
 }
 
 NetworkModel.prototype.init = function (json) {
-    this.json = json;
-    var arrKeys = Object.keys(json.namespaces);
-    var arrVal = Object.values(json.namespaces);
-    this.build(arrKeys, arrVal).bind(this);
+
+    this.build(Object.keys(json.namespaces), Object.values(json.namespaces));
+
 }
 
 NetworkModel.prototype.build = function (keys, values) {
 
+
+    //making an array of NamespaceNode objects out of json keys
     for(var i =0; i < keys.length; i++){
         var namespace = new NamespaceNode(keys[i]);
         this.namespaces.push(namespace);
-
     }
-    var arr = [];
 
+
+    //making an array of InterfaceNode objects out of json values
+    // every i  in value array is an array of interfaces
     for(var i =0; i < values.length; i++){
-        arr.push(values[i]);
-    }
-
-    for(var i =0; i < arr.length; i++){
-        var interfaceArr = Object.values(arr[i].interfaces);
+        var interfaceArr = Object.values(values[i].interfaces);
+        //every k is a concrete interface
         for(var k =0; k < interfaceArr.length; k++){
-
             var interface = new InterfaceNode(interfaceArr[k]);
             interface.setNamespace();
             this.interfaces.push(interface);
-
-
         }
-
-
     }
 
 
+    //table for future hints
     this.drawTable();
+   //links between nodes
     this.defineLinks();
 
     svg.drawGraph(
-
         this.namespaces,
         this.interfaces,
         this.links
@@ -57,13 +50,15 @@ NetworkModel.prototype.build = function (keys, values) {
 }
 
 
+/*
+Defining links (later visible as arrows) between interface nodes
+* */
 NetworkModel.prototype.defineLinks = function(){
 
 
     for(var i=0; i < this.interfaces.length;  i++){
 
         //if interface has parents then push new connection obj
-
         if(this.interfaces[i].json.parents){
 
             var parents = Object.keys(
@@ -81,6 +76,7 @@ NetworkModel.prototype.defineLinks = function(){
                             source : this.interfaces[m],
                             target : this.interfaces[i]
                         }
+
                         this.links.push(connection);
                     }
                 }
@@ -94,6 +90,8 @@ NetworkModel.prototype.defineLinks = function(){
 
 }
 
+
+//Drawing simpl table for hints straight out of JSON
 NetworkModel.prototype.drawTable = function () {
 
     var table = document.querySelector("#table1");
@@ -156,6 +154,10 @@ NetworkModel.prototype.drawTable = function () {
 
     }
 }
+
+
+/* ------------ unused, will probably be helpful later ---------------*/
+
 
 NetworkModel.prototype.separateToLevels = function (){
 

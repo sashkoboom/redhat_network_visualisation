@@ -7,6 +7,7 @@ var SVGBuilder = function() {
 
     this.graph = null;
 
+    //constants
     this.WIDTH = 1800;
     this.HEIGHT = 800;
 
@@ -25,7 +26,8 @@ var SVGBuilder = function() {
 }
 
 SVGBuilder.prototype.drawRect
-    = function(nodes, width, height, fill){
+    = function(nodes, width, height, fill)
+{
 
     var classname = nodes[0].classname;
 
@@ -184,17 +186,15 @@ SVGBuilder.prototype.drawGraph = function(namespaces,   interfaces,   links){
 
         namespaceNodes
             .attr('x', function(d){
+                //constrains for X position (so the node doesn't leave the screen)
                 if(d.x < 0) d.x = 0;
-
                 if(d.x >=  svg.WIDTH - svg.NAMESPACE_WIDTH) d.x = svg.WIDTH - svg.NAMESPACE_WIDTH ;
-
                 return d.x ;
             })
             .attr('y', function(d){
+                //constrains for Y position (so the node doesn't leave the screen)
                 if(d.y < 0) d.y = 0;
-
                 if(d.y >= svg.HEIGHT - svg.NAMESPACE_HEIGHT){  d.y = svg.HEIGHT - svg.NAMESPACE_HEIGHT ;}
-
                 return d.y ;
             });
     }

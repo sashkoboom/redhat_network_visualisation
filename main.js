@@ -8,12 +8,12 @@
 *
 * algorithm :
 *
-* define separate namespaces for later use
+* 1. wait until JSON file is received through input, parse json
 *
-* define array of interface objects
-* each interface contains
-* define array of links through interfaces
+* 2. separate json into Namespace and Interface objects,
+ *  define simple source-target links between them
 *
-* feed theese data to the d3
+* 3. draw simple graph using rather chaotic forceSimulation
+*
 *
 * */
