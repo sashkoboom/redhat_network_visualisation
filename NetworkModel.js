@@ -9,6 +9,13 @@ var NetworkModel = function() {
     this.namespaces = [];
 }
 
+NetworkModel.prototype.init = function (json) {
+    this.json = json;
+    var arrKeys = Object.keys(json.namespaces);
+    var arrVal = Object.values(json.namespaces);
+    this.build(arrKeys, arrVal).bind(this);
+}
+
 NetworkModel.prototype.build = function (keys, values) {
 
     for(var i =0; i < keys.length; i++){

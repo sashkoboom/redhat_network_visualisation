@@ -13,7 +13,7 @@ function handleFileSelect(evt) {
     function receivedText(e) {
         lines = e.target.result;
         var newArr = JSON.parse(lines);
-        graphInfo.init(newArr).bind(graphInfo);
+        graph.init(newArr).bind(graph);
     }
 
 }
