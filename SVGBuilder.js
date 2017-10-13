@@ -5,11 +5,16 @@ var SVGBuilder = function() {
 
     this.svgNS = "http://www.w3.org/2000/svg";
 
-    this.graph = null;
+    this.forceGraph = null;
+    this.treeGraph = null;
+
+    this.namespaces = null;
+    this.interfaces = null;
+    this.links = null;
 
     //constants
-    this.WIDTH = 1800;
-    this.HEIGHT = 800;
+    this.WIDTH = 1000;
+    this.HEIGHT = 600;
 
     this.INTERFACE_WIDTH = 60;
     this.INTERFACE_HEIGHT = 40;
@@ -19,9 +24,16 @@ var SVGBuilder = function() {
     this.NAMESPACE_HEIGHT = 200;
     this.NAMESPACE_FILL = "PaleTurquoise";
 
+}
 
+SVGBuilder.prototype.start = function(namespaces,   interfaces,   links){
 
+    this.namespaces = namespaces;
+    this.interfaces = interfaces;
+    this.links = links;
 
+    this.drawForceSimulationGraph();
+    this.drawTreeGraph();
 
 }
 
@@ -31,7 +43,7 @@ SVGBuilder.prototype.drawRect
 
     var classname = nodes[0].classname;
 
-    return this.graph.selectAll("rect ." + classname)
+    return this.forceGraph.selectAll("rect ." + classname)
         .data(nodes)
         .enter()
         .append("svg:rect")
@@ -52,11 +64,11 @@ SVGBuilder.prototype.drawRect
 
 
 
+//Draws a chaotic graph using d3.forceSimulation
+SVGBuilder.prototype.drawForceSimulationGraph = function(){
 
-SVGBuilder.prototype.drawGraph = function(namespaces,   interfaces,   links){
 
-
-    this.graph = d3.select("#g")
+    this.forceGraph = d3.select("#forcegraph")
         .append("svg")
         .attr("width", this.WIDTH)
         .attr("height", this.HEIGHT)
@@ -64,7 +76,7 @@ SVGBuilder.prototype.drawGraph = function(namespaces,   interfaces,   links){
 
 
     /* ------------arrow head-----------------*/
-    this.graph.append("svg:defs").selectAll("marker")
+    this.forceGraph.append("svg:defs").selectAll("marker")
         .data(["end"])      // Different link/path types can be defined here
         .enter().append("svg:marker")    // This section adds in the arrows
         .attr("id", String)
@@ -94,15 +106,15 @@ SVGBuilder.prototype.drawGraph = function(namespaces,   interfaces,   links){
 
 
     var namespaceNodes = this.drawRect(
-        namespaces, this.NAMESPACE_WIDTH, this.NAMESPACE_HEIGHT, this.NAMESPACE_FILL
+        this.namespaces, this.NAMESPACE_WIDTH, this.NAMESPACE_HEIGHT, this.NAMESPACE_FILL
     );
 
     var interfaceNodes = this.drawRect(
-        interfaces, this.INTERFACE_WIDTH, this.INTERFACE_HEIGHT, this.INTERFACE_FILL
+        this.interfaces, this.INTERFACE_WIDTH, this.INTERFACE_HEIGHT, this.INTERFACE_FILL
     );
 
-    var lines = this.graph.selectAll(".line")
-        .data(links)
+    var lines = this.forceGraph.selectAll(".line")
+        .data(this.links)
         .enter()
         .append("line")
         .attr("x1", function(d) {
@@ -116,8 +128,8 @@ SVGBuilder.prototype.drawGraph = function(namespaces,   interfaces,   links){
 
 
 
-    var titles = this.graph.selectAll("text .text")
-        .data(interfaces)
+    var titles = this.forceGraph.selectAll("text .text")
+        .data(this.interfaces)
         .enter()
         .append("svg:text")
         .attr("class", "text")
@@ -201,12 +213,27 @@ SVGBuilder.prototype.drawGraph = function(namespaces,   interfaces,   links){
 
 
     interfaceForce
-        .nodes(interfaces)
+        .nodes(this.interfaces)
         .on('tick', ticking);
 
     namespaceForce
-        .nodes(namespaces)
+        .nodes(this.namespaces)
         .on("tick", tick);
+
+
+}
+
+
+//Draws less chaotic graph using d3.hierarchy and d3.tree
+SVGBuilder.prototype.drawTreeGraph = function() {
+
+    this.treeGraph = d3.select("#treegraph")
+        .append("svg")
+        .attr("width", this.WIDTH)
+        .attr("height", this.HEIGHT)
+        .style("background", "LavenderBlush ")
+
+
 
 
 }

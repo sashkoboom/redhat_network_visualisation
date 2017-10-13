@@ -2,9 +2,12 @@
  * Created by sashkoboom on 28. 2. 2017.
  */
 var NetworkModel = function() {
+
     this.interfaces = [];
     this.links = [];
     this.namespaces = [];
+
+    this.hierarchies = [];
 }
 
 NetworkModel.prototype.init = function (json) {
@@ -41,7 +44,7 @@ NetworkModel.prototype.build = function (keys, values) {
    //links between nodes
     this.defineLinks();
 
-    svg.drawGraph(
+    svg.start(
         this.namespaces,
         this.interfaces,
         this.links
@@ -91,7 +94,26 @@ NetworkModel.prototype.defineLinks = function(){
 }
 
 
-//Drawing simpl table for hints straight out of JSON
+/*
+ * Organizes JSON into array of hierarchical trees
+ *
+ * example:
+ * var data = {
+ "name": "A1",
+ "children": [
+       {"name": "B1",
+         "children": [{"name": "C1",...}, {...}]
+         },{....}
+               ]
+.....}
+ * var root = d3.hierarchy(data)
+  * */
+NetworkModel.prototype.defineHierarchies = function(){
+
+}
+
+
+//Drawing simple table for hints straight out of JSON
 NetworkModel.prototype.drawTable = function () {
 
     var table = document.querySelector("#table1");
