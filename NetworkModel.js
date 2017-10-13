@@ -44,12 +44,25 @@ NetworkModel.prototype.build = function (keys, values) {
    //links between nodes
     this.defineLinks();
 
+    this.defineHierarchies();
+
     svg.start(
         this.namespaces,
         this.interfaces,
         this.links
     );
 
+}
+
+
+NetworkModel.prototype.findInterfaceByID = function(id){
+    for(var m =0; m < this.interfaces.length; m++){
+        if(this.interfaces[m].json.id == id){
+             return this.interfaces[m];
+        }
+    }
+    alert(":(");
+    return null;
 }
 
 
@@ -102,15 +115,56 @@ NetworkModel.prototype.defineLinks = function(){
  "name": "A1",
  "children": [
        {"name": "B1",
-         "children": [{"name": "C1",...}, {...}]
+         "children": [{"name": "C1"}, {...}]
          },{....}
                ]
 .....}
  * var root = d3.hierarchy(data)
   * */
 NetworkModel.prototype.defineHierarchies = function(){
+    //go though array of interfaces
+    //for each - start a new tree and recursively expand it while any children remain unhandled
+    var buildTree = function(tree){
+
+        if(tree.json.children && !tree.marked){
+            tree.marked = true;
+            var children = Object.keys(tree.json.children);
+            tree.children = [];
+            alert(children);
+            for(k=0; k < children.length; k++){
+
+                var id = children[k];
+                alert(id);
+                var child = networkModel.findInterfaceByID(id);
+
+                child = buildTree(child);
+
+                alert(child.json.id + " is child of " + tree.json.id);
+                tree.children.push(child);
+                child.marked = true;
+            }
+        }
+        return tree;
+
+    }
+
+
+    for(i=0; i < this.interfaces.length; i++){
+
+        var interface = this.interfaces[i];
+
+
+        if(!interface.json.marked)interface = buildTree(interface);
+
+        this.hierarchies.push(d3.hierarchy(interface));
+
+    }
+
+    console.log(this.hierarchies);
 
 }
+
+
 
 
 //Drawing simple table for hints straight out of JSON
@@ -279,10 +333,7 @@ NetworkModel.prototype.separateToBranches = function(){
                  }else{
                      interfacePointer = levelWhereMyPointerIs[levelWhereMyPointerIs.indexOf(interfacePointer)+1];
                  }
-
-
          }
-
          this.branches.push(newBranch);
     }
 

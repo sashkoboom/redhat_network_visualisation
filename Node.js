@@ -17,6 +17,7 @@ function InterfaceNode (json) {
     this.json = json;
     this.namespace = null;
     this.classname = "interface";
+    this.marked = false;
 
 }
 
