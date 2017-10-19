@@ -44,13 +44,16 @@ NetworkModel.prototype.build = function (keys, values) {
    //links between nodes
     this.defineLinks();
 
-    this.defineHierarchies();
+
 
     svg.start(
         this.namespaces,
         this.interfaces,
         this.links
     );
+
+
+    setTimeout(this.defineHierarchies(), 0);
 
 }
 
@@ -122,47 +125,77 @@ NetworkModel.prototype.defineLinks = function(){
  * var root = d3.hierarchy(data)
   * */
 NetworkModel.prototype.defineHierarchies = function(){
-    //go though array of interfaces
-    //for each - start a new tree and recursively expand it while any children remain unhandled
-    var buildTree = function(tree){
 
-        if(tree.json.children && !tree.marked){
-            tree.marked = true;
-            var children = Object.keys(tree.json.children);
-            tree.children = [];
-            alert(children);
-            for(k=0; k < children.length; k++){
+    var orphans = [];
+    var roots = 0;
+    var countingroots = true;
+    do {
 
-                var id = children[k];
-                alert(id);
-                var child = networkModel.findInterfaceByID(id);
 
-                child = buildTree(child);
 
-                alert(child.json.id + " is child of " + tree.json.id);
-                tree.children.push(child);
-                child.marked = true;
+        for (i = 0; i < this.interfaces.length; i++) {
+
+
+            var interface = this.interfaces[i];
+
+            if(!interface.json.parents && countingroots)roots++;
+
+            if(i == this.interfaces.length - 1)
+                countingroots = false;
+
+            if (!interface.marked && !orphans.includes(interface)) {
+
+                //no children
+                if (!interface.json.children) {
+
+                    if (interface.json.parents) {
+                        //a leaf waiting to be linked to its parents
+                        orphans.push(d3.hierarchy(interface));
+                    } else {
+                       //single root with no connections, no further manipulations
+                        this.hierarchies.push(d3.hierarchy(interface));
+                        interface.marked = true;
+                    }
+                }
+                //has children AND there are children to choose from
+                else if (orphans.length > 0) {
+
+                    var children = Object.keys(interface.json.children);
+
+                    for (k = 0; k < children.length; k++) {
+
+                        //if a child is in the orphans array
+
+                        var ind = orphans.indexOf();
+
+
+                    }
+
+                    //is ready and has all its children linked
+                    if(interface.children.length == children.length){
+                        alert("hmm");
+                        //is also a leaf waiting to be linked to its parents
+                        if (interface.parents) {
+                            orphans.push(interface.json.id);
+                        } else {
+                            //is a a root
+                            this.hierarchies.push(d3.hierarchy(interface));
+                            alert(this.hierarchies.length + "hier");
+                            interface.marked = true;
+                        }
+
+                    }
+
+                }
+
             }
+
         }
-        return tree;
-
-    }
-
-
-    for(i=0; i < this.interfaces.length; i++){
-
-        var interface = this.interfaces[i];
-
-
-        if(!interface.json.marked)interface = buildTree(interface);
-
-        this.hierarchies.push(d3.hierarchy(interface));
-
-    }
-
+     }while(this.hierarchies.length <= roots);
     console.log(this.hierarchies);
-
 }
+
+
 
 
 
