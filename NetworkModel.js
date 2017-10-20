@@ -130,7 +130,7 @@ NetworkModel.prototype.defineHierarchies = function(){
 
     for (l = 0; l < this.interfaces.length; l++) {
     newinterfaces.push(
-        d3.hierarchy(this.interfaces[l])
+        this.interfaces[l]
      );
     newinterfaces[l].children = [];
     }
@@ -146,7 +146,7 @@ NetworkModel.prototype.defineHierarchies = function(){
 
     var findChild = function (id, arr) {
         for(k =0; k < arr.length; k++)
-        {if(arr[k].data.json.id==id)return arr[k]}
+        {if(arr[k].json.id==id)return arr[k]}
         return null;
     }
 
@@ -163,24 +163,24 @@ NetworkModel.prototype.defineHierarchies = function(){
 
 
             //count roots
-            if(!interface.data.json.parents && countingroots)roots++;
+            if(!interface.json.parents && countingroots)roots++;
             //finish counting roots after first iteration
             if(i == this.interfaces.length - 1)
                 countingroots = false;
 
             //if the interface is not handeled yet and is an orphan, then work with it
-            if (!interface.data.marked && !orphans.includes(interface)) {
+            if (!interface.marked && !orphans.includes(interface)) {
 
                 //no children
-                if (!interface.data.json.children) {
+                if (!interface.json.children) {
 
-                    if (interface.data.json.parents) {
+                    if (interface.json.parents) {
                         //a leaf waiting to be linked to its parents
                         orphans.push(interface);
                     } else {
                        //single root with no connections, no further manipulations
                         this.hierarchies.push(interface);
-                        interface.data.marked = true;
+                        interface.marked = true;
                     }
                 }
                 //has children AND there are children to choose from
@@ -189,7 +189,7 @@ NetworkModel.prototype.defineHierarchies = function(){
                     var children = [];
 
                     //children val can be an object
-                    children = children.concat(Object.keys(interface.data.json.children));
+                    children = children.concat(Object.keys(interface.json.children));
 
 
                     for (n = 0; n < children.length; n++) {
@@ -200,7 +200,7 @@ NetworkModel.prototype.defineHierarchies = function(){
                             interface.children.push(child);
                             //delete the linked child from the orphan array
                             var index = orphans.indexOf(child);
-                            child.data.marked = true;
+                            child.marked = true;
                             orphans.splice(index, 1);
                         }
 
@@ -211,12 +211,12 @@ NetworkModel.prototype.defineHierarchies = function(){
                     if(interface.children.length == children.length){
 
                         //is also a leaf waiting to be linked to its parents
-                        if (interface.data.json.parents) {
+                        if (interface.json.parents) {
                             orphans.push(interface);
                         } else {
                             //is a a root
                             this.hierarchies.push(interface);
-                            interface.data.marked = true;
+                            interface.marked = true;
                         }
 
                     }
