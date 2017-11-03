@@ -43,17 +43,18 @@ NetworkModel.prototype.build = function (keys, values) {
     this.drawTable();
    //links between nodes
     this.defineLinks();
-
+    this.defineHierarchies();
 
 
     svg.start(
         this.namespaces,
         this.interfaces,
-        this.links
+        this.links,
+        this.hierarchies
     );
 
 
-    setTimeout(this.defineHierarchies(), 100);
+
 
 }
 
@@ -135,7 +136,7 @@ NetworkModel.prototype.defineHierarchies = function(){
     newinterfaces[l].children = [];
     }
 
-//array of d3.hierarchies that lack parents they need to be linked to
+     //array of d3.hierarchies that lack parents they need to be linked to
     var orphans = [];
 
     //estimated number of roots/trees (number of nodes with no parents)
