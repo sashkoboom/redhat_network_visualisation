@@ -25,7 +25,7 @@ var SVGBuilder = function() {
     this.NAMESPACE_HEIGHT = 200;
     this.NAMESPACE_FILL = "PaleTurquoise";
 
-    this.RADIUS = 25;
+    this.RADIUS = 5;
 
 }
 
@@ -235,37 +235,54 @@ SVGBuilder.prototype.drawTreeGraph = function() {
         .append("svg")
         .attr("width", this.WIDTH)
         .attr("height", this.HEIGHT)
-        .style("background", "LavenderBlush ");
+        .style("background", "LavenderBlush");
 
+    this.trees = [];
 
+    var width = this.WIDTH / this.hierarchies.length;
+ for( var i = 0; i < this.hierarchies.length; i++)
+ {
     var treeLayout = d3.tree();
-        treeLayout.size([this.WIDTH, this.HEIGHT]);
-        treeLayout(this.hierarchies[6]);
+    this.trees.push(treeLayout);
+    treeLayout.size([width , this.HEIGHT]);
+    treeLayout(this.hierarchies[i]);
 
     this.treeGraph
-        .selectAll('circle.node')
-        .data(this.hierarchies[6].descendants())
+        .selectAll('circle.node' + i)
+        .data(this.hierarchies[i].descendants())
         .enter()
         .append('circle')
-        .classed('node', true)
-        .attr('cx', function(d) {return d.x;})
-        .attr('cy', function(d) {return d.y;})
-        .attr('r', this.RADIUS);
+        .classed('node' + i, true)
+        .attr('cx', function (d) {
+            return d.x + width*i ;
+        })
+        .attr('cy', function (d) {
+            return d.y  ;
+        })
+        .attr('r', this.RADIUS );
 
 // Links
     this.treeGraph
-        .selectAll('line.link')
-        .data(this.hierarchies[6].links())
+        .selectAll('line.link' + i)
+        .data(this.hierarchies[i].links())
         .enter()
         .append('line')
-        .classed('link', true)
-        .attr('x1', function(d) {return d.source.x;})
-        .attr('y1', function(d) {return d.source.y;})
-        .attr('x2', function(d) {return d.target.x;})
-        .attr('y2', function(d) {return d.target.y;})
+        .classed('link' + i, true)
+        .attr('x1', function (d) {
+            return d.source.x + width*i;
+        })
+        .attr('y1', function (d) {
+            return d.source.y ;
+        })
+        .attr('x2', function (d) {
+            return d.target.x + width*i;
+        })
+        .attr('y2', function (d) {
+            return d.target.y ;
+        })
         .style("stroke", "rgb(6,120,155)");
 
-alert("ochochcohchc");
+}
 
 }
 

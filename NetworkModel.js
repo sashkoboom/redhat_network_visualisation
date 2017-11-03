@@ -6,14 +6,11 @@ var NetworkModel = function() {
     this.interfaces = [];
     this.links = [];
     this.namespaces = [];
-
     this.hierarchies = [];
 }
 
 NetworkModel.prototype.init = function (json) {
-
     this.build(Object.keys(json.namespaces), Object.values(json.namespaces));
-
 }
 
 NetworkModel.prototype.build = function (keys, values) {
@@ -38,13 +35,11 @@ NetworkModel.prototype.build = function (keys, values) {
         }
     }
 
-
     //table for future hints
     this.drawTable();
-   //links between nodes
+    //links between nodes
     this.defineLinks();
     this.defineHierarchies();
-
 
     svg.start(
         this.namespaces,
@@ -52,9 +47,6 @@ NetworkModel.prototype.build = function (keys, values) {
         this.links,
         this.hierarchies
     );
-
-
-
 
 }
 
