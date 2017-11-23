@@ -26,13 +26,35 @@ InterfaceNode.prototype = Object.create(Node.prototype);
 InterfaceNode.prototype.constructor = InterfaceNode;
 
 InterfaceNode.prototype.setNamespace = function(){
-    this.namespace = this.json.namespace;
+
+    var namespaceName = this.json.namespace;
+
+    for(i=0; i< networkModel.namespaces.length; i++){
+        if(namespaceName == networkModel.namespaces[i].id)
+            this.namespace = networkModel.namespaces[i];
+    }
+
 }
+
+var colors = [];
 
  function NamespaceNode (id) {
     Node.call(this);
     this.id = id;
     this.classname = "namespace"
+this.roots = [];
+     var color = "hsl(" + Math.random() * 360 + ",100%,80%)";
+
+    while(colors.indexOf(color) != -1){
+        color = "hsl(" + Math.random() * 360 + ",100%,80%)";
+    }
+
+    colors.push(color);
+
+    this.color = color;
+
+
+
 }
 
 NamespaceNode.prototype = Object.create(Node.prototype);

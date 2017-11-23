@@ -7,6 +7,7 @@ var SVGBuilder = function() {
 
     this.forceGraph = null;
     this.treeGraph = null;
+    this.horizontalGraph = null;
 
     this.namespaces = null;
     this.interfaces = null;
@@ -17,7 +18,7 @@ var SVGBuilder = function() {
     this.WIDTH = 1000;
     this.HEIGHT = 600;
 
-    this.INTERFACE_WIDTH = 60;
+    this.INTERFACE_WIDTH = 50;
     this.INTERFACE_HEIGHT = 40;
     this.INTERFACE_FILL = "plum";
 
@@ -37,8 +38,7 @@ SVGBuilder.prototype.start = function(namespaces,   interfaces,   links, hierarc
     this.hierarchies = hierarchies;
 
     this.drawForceSimulationGraph();
-    this.drawTreeGraph();
-
+    this.drawHorizontalTreeGraph();
 }
 
 SVGBuilder.prototype.drawRect
@@ -154,18 +154,46 @@ SVGBuilder.prototype.drawForceSimulationGraph = function(){
     /*---------*/
 
 
+    function box(){
+        for (var i = 0, n = svg.namespaces.length; i < n; ++i) {
+            curr = svg.namespaces[i];
+
+            curr.x = Math.max(0, Math.min(svg.WIDTH - svg.NAMESPACE_WIDTH, curr.x));
+            curr.y = Math.max(0, Math.min(svg.HEIGHT - svg.NAMESPACE_HEIGHT, curr.y));
+
+        }
+    }
+
     var namespaceForce = d3.forceSimulation()
-        .force("collide", d3.forceCollide(Math.max(this.NAMESPACE_HEIGHT, this.NAMESPACE_WIDTH)))
+        .force("collide", d3.forceCollide(200))
+        .force('center', d3.forceManyBody())
+        .force("borders", box);
 
 
-    var interfaceForce = d3.forceSimulation()
-        .force("collide", d3.forceCollide(Math.max(this.INTERFACE_HEIGHT, this.INTERFACE_WIDTH)))
-        .force("link",
-            d3.forceLink()
-                .strength(1)
-                .iterations(2))
-        .force("x",  d3.forceX(this.WIDTH/2).strength(0.1))
-        .force("y",  d3.forceY(this.HEIGHT/2).strength(0.1))
+    //Bounds the node inside the box of its namespace
+    function forceNS() {
+        for (var i = 0, n = svg.interfaces.length; i < n; ++i) {
+            curr = svg.interfaces[i];
+           /*get the position of *my* namespace */
+
+            var x1NS = curr.namespace.x;
+            var y1NS = curr.namespace.y;
+            var x2NS = curr.namespace.x + svg.NAMESPACE_WIDTH;
+            var y2NS = curr.namespace.y + svg.NAMESPACE_WIDTH;
+
+
+            curr.x = Math.max(x1NS, Math.min(x2NS - svg.INTERFACE_WIDTH, curr.x));
+            curr.y = Math.max(y1NS, Math.min(y2NS - svg.INTERFACE_HEIGHT, curr.y));
+
+        }
+    }
+
+
+            var interfaceForce =
+        d3.forceSimulation()
+            .force("collide", d3.forceCollide(30))
+            .force("namespace_force", forceNS)
+
 
 
     var namespaceNodes = this.drawRect(
@@ -188,16 +216,10 @@ SVGBuilder.prototype.drawForceSimulationGraph = function(){
 
         interfaceNodes
             .attr('x', function(d){
-                if(d.x < 0) d.x = 0;
-
-                if(d.x >=  svg.WIDTH - svg.INTERFACE_WIDTH) d.x = svg.WIDTH - svg.INTERFACE_WIDTH ;
 
                 return d.x ;
             })
             .attr('y', function(d){
-                if(d.y < 0) d.y = 0;
-
-                if(d.y >= svg.HEIGHT - svg.INTERFACE_HEIGHT){  d.y = svg.HEIGHT - svg.INTERFACE_HEIGHT ;}
 
                 return d.y ;
             });
@@ -232,14 +254,10 @@ SVGBuilder.prototype.drawForceSimulationGraph = function(){
         namespaceNodes
             .attr('x', function(d){
                 //constrains for X position (so the node doesn't leave the screen)
-                if(d.x < 0) d.x = 0;
-                if(d.x >=  svg.WIDTH - svg.NAMESPACE_WIDTH) d.x = svg.WIDTH - svg.NAMESPACE_WIDTH ;
                 return d.x ;
             })
             .attr('y', function(d){
                 //constrains for Y position (so the node doesn't leave the screen)
-                if(d.y < 0) d.y = 0;
-                if(d.y >= svg.HEIGHT - svg.NAMESPACE_HEIGHT){  d.y = svg.HEIGHT - svg.NAMESPACE_HEIGHT ;}
                 return d.y ;
             });
     }
@@ -273,7 +291,7 @@ SVGBuilder.prototype.drawTreeGraph = function() {
  {
     var treeLayout = d3.tree();
     this.trees.push(treeLayout);
-    treeLayout.size([width , this.HEIGHT]);
+    treeLayout.size([width , this.HEIGHT - 30]);
     treeLayout(this.hierarchies[i]);
 
     this.drawRect(
@@ -303,7 +321,6 @@ SVGBuilder.prototype.drawTreeGraph = function() {
 
 this.drawLinks(this.treeGraph, this.hierarchies[i].links(), width*i, i );
 
-console.log(this.hierarchies[i].descendants());
 
 this.drawText(
     this.treeGraph,
@@ -317,6 +334,160 @@ this.drawText(
 }
 
 }
+
+
+SVGBuilder.prototype.drawHorizontalTreeGraph = function() {
+
+
+
+
+    this.horizontalGraph = d3.select("#vertical")
+        .append("svg")
+        .attr("width", this.WIDTH)
+        .attr("height", 1200)
+        .style("background", "LightCyan ");
+
+    this.drawNamespaceses();
+
+    for( var i = 0; i < this.hierarchies.length; i++)
+    {
+        this.drawHorizontalTree(this.hierarchies[i] , i, i)
+    }
+
+
+
+
+}
+
+SVGBuilder.prototype.drawNamespaceses = function(){
+
+
+    var margin = 25;
+    var classPadding = this.namespaces[0].classname;
+    var posY = function(d){
+        return svg.namespaces.indexOf(d)*(svg.NAMESPACE_HEIGHT + margin)
+    }
+
+
+
+    this.horizontalGraph.selectAll("rect." + classPadding)
+        .data(this.namespaces)
+        .enter()
+        .append("svg:rect")
+        .attr("class", function (d) {
+            return d.classname
+        })
+        .attr("x", function(d){
+            return 10;
+        })
+        .attr("y",function(d){
+            return posY(d)  ;
+        } )
+        .attr("width", this.WIDTH-20)
+        .attr("height", this.NAMESPACE_HEIGHT)
+        .attr("stroke", "black")
+        .style("fill",function(d) {
+            return d.color;
+        })
+
+    this.horizontalGraph
+        .selectAll("text .text" + classPadding)
+        .data(this.namespaces)
+        .enter()
+        .append("svg:text")
+        .attr("class", "text")
+        .attr("x", svg.WIDTH - 120)
+        .attr("y", function(d){
+            return posY(d) + 20 ;
+        })
+        .attr("width", 90)
+        .attr("height", this.INTERFACE_HEIGHT)
+        .attr("fill", "black")
+        .attr("font-family", "Ariel Black")
+        .attr("font-size", 18)
+        .text(function (d) {
+            return d.id;
+        });
+
+
+}
+
+SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPadding) {
+
+    var treeLayout = d3.tree();
+
+    var treespace =  120;
+
+    treeLayout.size([treespace, this.HEIGHT ]);
+
+    treeLayout(hierarchy);
+
+
+    var shiftVertical = function () {
+        return treespace*shiftY
+    }
+
+    var shiftHorizontal = function () {
+        return 20;
+    }
+
+    //drawing lines
+    this.horizontalGraph.selectAll(".line")
+        .data(hierarchy.links())
+        .enter()
+        .append("line")
+        .attr("x1", function(d) { return d.source.y + shiftHorizontal() })
+        .attr("y1", function(d) { return d.source.x + shiftVertical() + svg.INTERFACE_HEIGHT/2 })
+        .attr("x2", function(d) { return d.target.y + shiftHorizontal()  })
+        .attr("y2", function(d) { return d.target.x + shiftVertical() + svg.INTERFACE_HEIGHT/2})
+        .attr("marker-end", "url(#end)")
+        .style("stroke", "rgb(6,120,155)");
+
+    //drawing rectangles
+     this.horizontalGraph.selectAll("rect.vertical" + classPadding)
+        .data(hierarchy.descendants())
+        .enter()
+        .append("svg:rect")
+        .attr("class", "vertical" + classPadding)
+        .attr("x", function(d){
+            return d.y + shiftHorizontal();
+        })
+        .attr("y",function(d){
+            return d.x + shiftVertical()  ;
+        } )
+        .attr("width", this.INTERFACE_WIDTH)
+        .attr("height", this.INTERFACE_HEIGHT)
+        .attr("stroke", "RebeccaPurple")
+         .attr("stroke-width", 5)
+        .attr("fill", function (d) {
+            return d.data.namespace.color;
+        } );
+
+
+    //drawing text
+    this.horizontalGraph
+        .selectAll("text .text" + classPadding)
+        .data(hierarchy.descendants())
+        .enter()
+        .append("svg:text")
+        .attr("class", "text")
+        .attr("x", function(d){
+            return d.y + shiftHorizontal() + 5 ;
+        })
+        .attr("y", function(d){
+            return d.x +  svg.INTERFACE_HEIGHT/2 - 5 + shiftVertical();
+        })
+        .attr("width", 90)
+        .attr("height", this.INTERFACE_HEIGHT)
+        .attr("fill", "black")
+        .attr("font-family", "Ariel Black")
+        .attr("font-size", 12)
+        .text(function (d) {
+            return d.data.json.id;
+        });
+
+}
+
 
 
 

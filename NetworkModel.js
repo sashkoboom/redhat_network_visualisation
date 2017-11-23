@@ -40,6 +40,7 @@ NetworkModel.prototype.build = function (keys, values) {
     //links between nodes
     this.defineLinks();
     this.defineHierarchies();
+    this.groupHierarchiesByNamespaces();
 
     svg.start(
         this.namespaces,
@@ -227,13 +228,25 @@ NetworkModel.prototype.defineHierarchies = function(){
 
 
     for(g=0; g<this.hierarchies.length; g++)
+    {
         this.hierarchies[g] = d3.hierarchy(this.hierarchies[g])
+        this.hierarchies[g].data.namespace.roots.push( this.hierarchies[g] )
+    }
 
 
     console.log(this.hierarchies);
 }
 
+//Reorders hierarchies array so it fits with order of namespaces (will be useful for drawing)
+NetworkModel.prototype.groupHierarchiesByNamespaces = function () {
 
+    this.hierarchies = [];
+
+    for(i = 0 ; i < this.namespaces.length ; i++){
+        this.hierarchies = this.hierarchies.concat(this.namespaces[i].roots)
+    }
+
+};
 
 
 
