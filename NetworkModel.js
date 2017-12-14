@@ -1,12 +1,16 @@
 /**
  * Created by sashkoboom on 28. 2. 2017.
  */
+
+
+//Works with JSON, mainly reformatting it so d3.js can just draw from it
 var NetworkModel = function() {
 
     this.interfaces = [];
     this.links = [];
     this.namespaces = [];
     this.hierarchies = [];
+
 }
 
 NetworkModel.prototype.init = function (json) {
@@ -58,7 +62,7 @@ NetworkModel.prototype.findInterfaceByID = function(id){
              return this.interfaces[m];
         }
     }
-    alert(":(");
+
     return null;
 }
 
@@ -249,8 +253,6 @@ NetworkModel.prototype.groupHierarchiesByNamespaces = function () {
 };
 
 
-
-
 //Drawing simple table for hints straight out of JSON
 NetworkModel.prototype.drawTable = function () {
 
@@ -315,9 +317,13 @@ NetworkModel.prototype.drawTable = function () {
     }
 }
 
+//TODO: calculates the widest branch
+NetworkModel.prototype.widestBranchOf = function (hiearchy){
+
+    return 1;
+}
 
 /* ------------ unused, will probably be helpful later ---------------*/
-
 
 NetworkModel.prototype.separateToLevels = function (){
 

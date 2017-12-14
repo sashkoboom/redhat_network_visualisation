@@ -5,16 +5,30 @@ var SVGBuilder = function() {
 
     this.svgNS = "http://www.w3.org/2000/svg";
 
+    //graphs
     this.forceGraph = null;
     this.treeGraph = null;
     this.horizontalGraph = null;
 
+    //data
     this.namespaces = null;
     this.interfaces = null;
     this.links = null;
     this.hierarchies = null;
 
-        //constants
+    //graphic elements
+    this.svgInterfaces = {
+        rect : [],
+        text : [],
+        lines : []
+    };
+    this.svgNamespaces = {
+        rect : [],
+        text : []
+
+    };
+
+    // changeable constants
     this.WIDTH = 1000;
     this.HEIGHT = 600;
 
@@ -39,6 +53,8 @@ SVGBuilder.prototype.start = function(namespaces,   interfaces,   links, hierarc
 
     this.drawForceSimulationGraph();
     this.drawHorizontalTreeGraph();
+  //  this.rearrangeHorizontalTreeGraph();
+    this.addDragBehaviour();
 }
 
 SVGBuilder.prototype.drawRect
@@ -340,7 +356,6 @@ SVGBuilder.prototype.drawHorizontalTreeGraph = function() {
 
 
 
-
     this.horizontalGraph = d3.select("#vertical")
         .append("svg")
         .attr("width", this.WIDTH)
@@ -354,8 +369,9 @@ SVGBuilder.prototype.drawHorizontalTreeGraph = function() {
         this.drawHorizontalTree(this.hierarchies[i] , i, i)
     }
 
-
-
+    this.svgInterfaces.rect = svg.horizontalGraph.selectAll("rect.movable");
+    this.svgInterfaces.text = svg.horizontalGraph.selectAll("text.movable");
+    this.svgInterfaces.lines = svg.horizontalGraph.selectAll("line.movable");
 
 }
 
@@ -370,7 +386,7 @@ SVGBuilder.prototype.drawNamespaceses = function(){
 
 
 
-    this.horizontalGraph.selectAll("rect." + classPadding)
+    this.svgNamespaces.rect = this.horizontalGraph.selectAll("rect." + classPadding)
         .data(this.namespaces)
         .enter()
         .append("svg:rect")
@@ -390,7 +406,7 @@ SVGBuilder.prototype.drawNamespaceses = function(){
             return d.color;
         })
 
-    this.horizontalGraph
+    this.svgNamespaces.text = this.horizontalGraph
         .selectAll("text .text" + classPadding)
         .data(this.namespaces)
         .enter()
@@ -408,18 +424,14 @@ SVGBuilder.prototype.drawNamespaceses = function(){
         .text(function (d) {
             return d.id;
         });
-
-
 }
 
 SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPadding) {
 
     var treeLayout = d3.tree();
 
-    var treespace =  120;
-
+    var treespace =  networkModel.widestBranchOf(h) * 120;
     treeLayout.size([treespace, this.HEIGHT ]);
-
     treeLayout(hierarchy);
 
 
@@ -431,46 +443,55 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
         return 20;
     }
 
+
     //drawing lines
-    this.horizontalGraph.selectAll(".line")
-        .data(hierarchy.links())
-        .enter()
-        .append("line")
-        .attr("x1", function(d) { return d.source.y + shiftHorizontal() })
-        .attr("y1", function(d) { return d.source.x + shiftVertical() + svg.INTERFACE_HEIGHT/2 })
-        .attr("x2", function(d) { return d.target.y + shiftHorizontal()  })
-        .attr("y2", function(d) { return d.target.x + shiftVertical() + svg.INTERFACE_HEIGHT/2})
-        .attr("marker-end", "url(#end)")
-        .style("stroke", "rgb(6,120,155)");
+    this.svgInterfaces.lines.push(
+        this.horizontalGraph.selectAll(".line")
+            .data(hierarchy.links())
+            .enter()
+            .append("line")
+            .attr("class", "movable")
+            .attr("x1", function(d) { return d.source.y + shiftHorizontal() })
+            .attr("y1", function(d) { return d.source.x + shiftVertical() + svg.INTERFACE_HEIGHT/2 })
+            .attr("x2", function(d) { return d.target.y + shiftHorizontal()  })
+            .attr("y2", function(d) { return d.target.x + shiftVertical() + svg.INTERFACE_HEIGHT/2})
+            .attr("marker-end", "url(#end)")
+            .style("stroke", "rgb(6,120,155)")
+    );
+
 
     //drawing rectangles
-     this.horizontalGraph.selectAll("rect.vertical" + classPadding)
+
+     var rects =  this.horizontalGraph.selectAll("rect.tree" + classPadding)
         .data(hierarchy.descendants())
         .enter()
         .append("svg:rect")
-        .attr("class", "vertical" + classPadding)
+        .attr("class", "tree" + classPadding)
+        .attr("class", "movable")
         .attr("x", function(d){
             return d.y + shiftHorizontal();
         })
         .attr("y",function(d){
-            return d.x + shiftVertical()  ;
+            return  d.x + shiftVertical();
         } )
+        .attr("fixed", false)
         .attr("width", this.INTERFACE_WIDTH)
         .attr("height", this.INTERFACE_HEIGHT)
         .attr("stroke", "RebeccaPurple")
          .attr("stroke-width", 5)
         .attr("fill", function (d) {
             return d.data.namespace.color;
-        } );
-
+        } )
 
     //drawing text
-    this.horizontalGraph
+    this.svgInterfaces.text.push(
+        this.horizontalGraph
         .selectAll("text .text" + classPadding)
         .data(hierarchy.descendants())
         .enter()
         .append("svg:text")
         .attr("class", "text")
+        .attr("class", "movable")
         .attr("x", function(d){
             return d.y + shiftHorizontal() + 5 ;
         })
@@ -484,11 +505,122 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
         .attr("font-size", 12)
         .text(function (d) {
             return d.data.json.id;
-        });
+        })
+    );
 
 }
 
+SVGBuilder.prototype.rearrangeHorizontalTreeGraph = function(){
 
+var nodes = svg.horizontalGraph.selectAll("rect.movable");
+var lines = svg.horizontalGraph.selectAll("line.movable");
+var text = svg.horizontalGraph.selectAll("text.movable");
+
+
+    function box(){
+       nodes
+           .attr("x", function(d)
+           {
+               return d.x;
+           })
+           .attr("y", function(d)
+           {
+               return d.y;
+           }
+           )
+    }
+
+    console.log("ok");
+
+    var interfaceForce = d3.forceSimulation().
+    force("collide", d3.forceCollide(100));
+
+
+    var ticking = function() {
+
+        nodes
+            .attr('x', function (d) {
+                return d.x
+                    ;})
+            .attr('y', function (d) {
+                return d.y
+                    ;});
+
+   text
+       .attr('x', function(d){ return d.x + 5 })
+       .attr('y', function(d){ return d.y + svg.INTERFACE_HEIGHT/2 - 5 });
+
+       lines
+            .attr("x1", function (d) {
+                   return d.source.x;
+            })
+            .attr("y1", function (d) {
+                 return d.source.y;
+            })
+            .attr("x2", function (d) {
+                 return d.target.x;
+            })
+            .attr("y2", function (d) {
+                 return d.target.y;
+            })
+
+
+    }
+
+    interfaceForce
+        .nodes(this.interfaces)
+        .on('tick', ticking);
+
+
+
+
+
+}
+
+SVGBuilder.prototype.addDragBehaviour = function(){
+
+
+
+    function dragstarted(d) {
+        console.log(d.fx , d.fy)
+        console.log(d.x, d.y)
+
+        d.fx = d.x, d.fy = d.y;
+
+    }
+
+    function dragged(d) {
+
+        d.fx = d3.event.x, d.fy = d3.event.y;
+        d.x = d.fx;
+        d.y = d.fy;
+
+    }
+
+    function dragended(d) {
+
+        d.x = d.fx;
+        d.y = d.fy;
+
+        d.fx = null, d.fy = null;
+
+        console.log(d.fx , d.fy)
+        console.log(d.x, d.y)
+
+    }
+
+
+    var drag = d3.drag()
+        .on("start", dragstarted )
+        .on("drag", dragged)
+        .on("end", dragended);
+
+    svg.horizontalGraph.selectAll("rect.movable")
+        .call(drag);
+
+
+
+}
 
 
 var svg = new SVGBuilder();
