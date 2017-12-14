@@ -18,9 +18,9 @@ var SVGBuilder = function() {
 
     //graphic elements
     this.svgInterfaces = {
-        rect : [],
-        text : [],
-        lines : []
+        rect : null,
+        text : null,
+        lines : null
     };
     this.svgNamespaces = {
         rect : [],
@@ -427,16 +427,15 @@ SVGBuilder.prototype.drawNamespaceses = function(){
         });
 }
 
-SVGBuilder.prototype.recalculateXY = function (hierarchy, shiftY ) {
-
-}
-
 
 SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPadding) {
 
     var treeLayout = d3.tree();
 
+    //TODO///////////////////////////////////////////
     var treespace =  networkModel.widestBranchOf(hierarchy) * 120;
+    ///////////////////////////////////
+
     treeLayout.size([treespace, this.HEIGHT ]);
     treeLayout(hierarchy);
     console.log(hierarchy);
@@ -457,15 +456,12 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
     for( i=0; i < nodes.length ; i++){
 
         var curr = nodes[i];
-
         oldX = curr.x;
         oldY = curr.y;
-
         curr.x = oldY + shiftHorizontal();
         curr.y = oldX + shiftVertical();
-
-
     }
+
 
 
 
@@ -474,7 +470,7 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
 
 
     //drawing lines
-    this.svgInterfaces.lines.push(
+    var l =
         this.horizontalGraph.selectAll(".line")
             .data(hierarchy.links())
             .enter()
@@ -486,11 +482,7 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
             .attr("y2", function(d) { return d.target.y + svg.INTERFACE_HEIGHT/2})
             .attr("marker-end", "url(#end)")
             .style("stroke", "rgb(6,120,155)")
-    );
-
-
     //drawing rectangles
-
      var rects =  this.horizontalGraph.selectAll("rect.tree" + classPadding)
         .data(nodes)
         .enter()
@@ -504,7 +496,7 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
             return  d.y;
         } )
         .attr("fixed", false)
-
+         .attr('transform', "translate(0,0)")
         .attr("width", this.INTERFACE_WIDTH)
         .attr("height", this.INTERFACE_HEIGHT)
         .attr("stroke", "RebeccaPurple")
@@ -514,7 +506,7 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
         } )
 
     //drawing text
-    this.svgInterfaces.text.push(
+    var t =
         this.horizontalGraph
         .selectAll("text .text" + classPadding)
         .data(hierarchy.descendants())
@@ -536,7 +528,7 @@ SVGBuilder.prototype.drawHorizontalTree = function (hierarchy , shiftY, classPad
         .text(function (d) {
             return d.data.json.id;
         })
-    );
+
 
 }
 
@@ -604,39 +596,54 @@ var text = svg.horizontalGraph.selectAll("text.movable");
 
 }
 
-
-
 SVGBuilder.prototype.addDragBehaviour = function(){
 
-    var drag = d3.drag()
-        .on("drag", dragmove)
+    /*TODO :
+    1. on drag start draw dotted rectangle of the same size
+    2. on drag make rectangle follow the mouse
+    3. when mouse is released, change d.x, d.y to position of the rectangle and redraw the whole graph
+        (??? redraw only the affected tree)
+     */
 
+
+
+    var drag = d3.drag().on("drag", dragmove);
 
     var n = svg.horizontalGraph.selectAll("rect.movable")
     n.call(drag);
+    n.each(function(d){
+        d.dragged = false;
+    })
+
+    console.log(n);
+
+    var curr_x, curr_y;
 
     function dragmove(d) {
 
         console.log(d.x , d3.event.x)
         console.log(d.y , d3.event.y)
+   //   console.log(d);
 
-        d3.select(this).call(
-            set_transform,
-            d.x = d3.event.x,
-            d.y = d3.event.y
-        );
+
+
+       // d3.select(this).call(set_transform , d.x = d3.event.x , d.y = d3.event.y);
     }
 
     function set_transform(sel, x, y) {
-        console.log(x , y)
-        console.log("//////////////////////" )
 
-        sel.attr('transform', "translate(" + x + "," + y + ")");
+        console.log(sel);
+        console.log(x, curr_x);
+        console.log(y, curr_y);
+
+        sel.transition()
+            .duration(25)
+            .ease(d3.easeLinear)
+            .attr('transform', "translate(" + x + "," + y + ")");
     }
 
 }
 
-alert("woof");
 var svg = new SVGBuilder();
 
 

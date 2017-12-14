@@ -316,6 +316,10 @@ NetworkModel.prototype.drawTable = function () {
 
 //TODO: calculates the widest branch
 NetworkModel.prototype.widestBranchOf = function (hiearchy){
+    var curr_root = hiearchy;
+
+
+    //many recursions @______@
 
     return 1;
 }

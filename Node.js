@@ -12,7 +12,6 @@ function Node (){
 }
 
 function InterfaceNode (json) {
-
     Node.call(this);
     this.json = json;
     this.namespace = null;
