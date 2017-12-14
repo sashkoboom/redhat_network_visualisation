@@ -50,10 +50,7 @@ this.roots = [];
     }
 
     colors.push(color);
-
     this.color = color;
-
-
 
 }
 

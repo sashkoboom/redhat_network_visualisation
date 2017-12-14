@@ -1,3 +1,5 @@
+
+
 table{
     border: black;
 }
@@ -23,9 +25,6 @@ tr:nth-child(odd) {background: #FFF}
 
 
 rect{
-
-    transition-duration: 1s;
-    transition-timing-function: linear;
 
 }
 

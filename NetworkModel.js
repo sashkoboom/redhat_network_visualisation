@@ -45,16 +45,13 @@ NetworkModel.prototype.build = function (keys, values) {
     this.defineLinks();
     this.defineHierarchies();
     this.groupHierarchiesByNamespaces();
-
     svg.start(
         this.namespaces,
         this.interfaces,
         this.links,
         this.hierarchies
     );
-
 }
-
 
 NetworkModel.prototype.findInterfaceByID = function(id){
     for(var m =0; m < this.interfaces.length; m++){
